@@ -1,0 +1,13 @@
+{
+  "$id": "task-list.schema.json",
+  "title": "TaskList",
+  "type": "object",
+  "required": ["items", "total", "limit", "offset"],
+  "additionalProperties": false,
+  "properties": {
+    "items": { "type": "array", "items": { "$ref": "task.schema.json" } },
+    "total": { "type": "integer", "minimum": 0 },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+    "offset": { "type": "integer", "minimum": 0 }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$id": "error.schema.json",
+  "title": "ApiError",
+  "description": "Error envelope OBSERVED on the live API (404 and 422). NOTE: the OpenAPI document declares HTTPValidationError {detail: [...]}, but the deployed service returns this envelope. Documented in docs/api-contract-findings.md.",
+  "type": "object",
+  "required": ["error"],
+  "properties": {
+    "error": {
+      "type": "object",
+      "required": ["code", "message", "details"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "details": { "type": "array" }
+      }
+    }
+  }
+}

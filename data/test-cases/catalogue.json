@@ -1,0 +1,1299 @@
+{
+  "$comment": "Approved test case catalogue (reviewed from drafts produced by `npm run jira:generate`). Coverage reporter uses it to tell Not executed from Not automated.",
+  "reviewedBy": "QA lead (workshop)",
+  "reviewedAt": "2026-11-15",
+  "testCases": [
+    {
+      "id": "TC-API-001",
+      "storyKey": "-",
+      "acIds": [],
+      "type": "positive",
+      "title": "Health endpoint reports the service is up",
+      "preconditions": [],
+      "testData": {},
+      "steps": [
+        "GET /health"
+      ],
+      "expectedResults": [
+        "HTTP 200",
+        "Body matches health schema {status:\"ok\"}"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/health.api.spec.ts"
+    },
+    {
+      "id": "TC-API-010",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Create task with title only applies defaults",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "title": "<unique>"
+      },
+      "steps": [
+        "POST /api/v1/tasks {title}",
+        "Inspect response",
+        "GET /api/v1/tasks/{id}"
+      ],
+      "expectedResults": [
+        "HTTP 201 and task schema valid",
+        "status=pending, priority=medium, description=null, due_date=null",
+        "GET returns identical task"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-011",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "positive",
+      "title": "Create task with all fields persists values",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "status": "in_progress",
+        "priority": "high",
+        "due_date": "today+30",
+        "description": "unicode text"
+      },
+      "steps": [
+        "POST /api/v1/tasks with every field"
+      ],
+      "expectedResults": [
+        "HTTP 201",
+        "Every submitted field echoed exactly"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-012",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "boundary",
+      "title": "Title length boundaries (1, 120, 121)",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "lengths": [
+          1,
+          120,
+          121
+        ]
+      },
+      "steps": [
+        "POST a task with each title length"
+      ],
+      "expectedResults": [
+        "1 → 201",
+        "120 → 201",
+        "121 → 422 error envelope"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-013",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "negative",
+      "title": "Reject missing, empty, null and whitespace-only title",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {
+        "titles": [
+          "<missing>",
+          "\"\"",
+          "null",
+          "\"   \""
+        ]
+      },
+      "steps": [
+        "POST each invalid payload"
+      ],
+      "expectedResults": [
+        "HTTP 422",
+        "error.code = validation_error"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-014",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "boundary",
+      "title": "Description length boundary (2000 / 2001)",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "lengths": [
+          2000,
+          2001
+        ]
+      },
+      "steps": [
+        "POST with 2000-char description",
+        "POST with 2001-char description"
+      ],
+      "expectedResults": [
+        "2000 → 201",
+        "2001 → 422"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-015",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "Reject invalid status, priority and due date",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {
+        "status": "done",
+        "priority": "urgent",
+        "due_date": "15/01/2030"
+      },
+      "steps": [
+        "POST each invalid payload",
+        "Search for the title"
+      ],
+      "expectedResults": [
+        "HTTP 422",
+        "No task persisted"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-create.api.spec.ts"
+    },
+    {
+      "id": "TC-API-020",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC5"
+      ],
+      "type": "positive",
+      "title": "Get task by id returns full details",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create task (API)",
+        "GET /api/v1/tasks/{id}"
+      ],
+      "expectedResults": [
+        "HTTP 200, schema valid, equals created task"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-021",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC5"
+      ],
+      "type": "negative",
+      "title": "Unknown id → 404, malformed id → 422",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {
+        "id": [
+          "random UUID",
+          "not-a-uuid"
+        ]
+      },
+      "steps": [
+        "GET unknown UUID",
+        "GET malformed id"
+      ],
+      "expectedResults": [
+        "404 not_found",
+        "422 validation_error"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-022",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Search matches title and description only",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "marker": "<unique token>"
+      },
+      "steps": [
+        "Create 2 matching + 1 unrelated task",
+        "GET ?search=<token>",
+        "Create task with token in description; search"
+      ],
+      "expectedResults": [
+        "Exactly the matching tasks returned",
+        "Description matches are returned"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-023",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Status filter returns only that status",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "statuses": [
+          "pending",
+          "completed"
+        ]
+      },
+      "steps": [
+        "Create pending + completed task",
+        "GET ?status=pending / completed"
+      ],
+      "expectedResults": [
+        "Only tasks with the requested status"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-024",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "boundary",
+      "title": "Page size boundaries (1, 100, 0, 101)",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {
+        "limits": [
+          1,
+          100,
+          0,
+          101
+        ]
+      },
+      "steps": [
+        "GET ?limit=<n>"
+      ],
+      "expectedResults": [
+        "1 and 100 → 200",
+        "0 and 101 → 422"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-025",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Offset pagination without overlap",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "tasks": 3,
+        "limit": 2
+      },
+      "steps": [
+        "Create 3 tasks",
+        "GET page 1 and page 2 sorted by title"
+      ],
+      "expectedResults": [
+        "2 + 1 items, all 3 tasks once, in order"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-read.api.spec.ts"
+    },
+    {
+      "id": "TC-API-030",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC1",
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Edit title, description, priority, due date",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "priority": "low → high"
+      },
+      "steps": [
+        "PATCH changes",
+        "GET task"
+      ],
+      "expectedResults": [
+        "HTTP 200 and values updated",
+        "Persisted",
+        "updated_at increases, created_at unchanged"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-update.api.spec.ts"
+    },
+    {
+      "id": "TC-API-031",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Status workflow pending → in_progress → completed → pending",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "PATCH each status",
+        "GET after each change"
+      ],
+      "expectedResults": [
+        "Each status saved and returned"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-update.api.spec.ts"
+    },
+    {
+      "id": "TC-API-032",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "Reject invalid updates; task unchanged",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "invalid": [
+          "\"\"",
+          "121 chars",
+          "archived",
+          "critical"
+        ]
+      },
+      "steps": [
+        "PATCH each invalid value",
+        "GET task"
+      ],
+      "expectedResults": [
+        "HTTP 422",
+        "Task identical to original"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-update.api.spec.ts"
+    },
+    {
+      "id": "TC-API-033",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "Update non-existent task → 404",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {},
+      "steps": [
+        "PATCH random UUID"
+      ],
+      "expectedResults": [
+        "404 not_found"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-update.api.spec.ts"
+    },
+    {
+      "id": "TC-API-040",
+      "storyKey": "TP-104",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Deleted task can no longer be retrieved",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "DELETE task",
+        "GET task",
+        "Search title"
+      ],
+      "expectedResults": [
+        "204 empty body",
+        "404",
+        "0 results"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-delete.api.spec.ts"
+    },
+    {
+      "id": "TC-API-041",
+      "storyKey": "TP-104",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "Delete non-existent task → 404",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {},
+      "steps": [
+        "DELETE random UUID"
+      ],
+      "expectedResults": [
+        "404 not_found"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-delete.api.spec.ts"
+    },
+    {
+      "id": "TC-API-042",
+      "storyKey": "TP-104",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "Delete same task twice",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "DELETE twice"
+      ],
+      "expectedResults": [
+        "204 then 404"
+      ],
+      "automationType": "API",
+      "priority": "P3",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/tasks-delete.api.spec.ts"
+    },
+    {
+      "id": "TC-API-050",
+      "storyKey": "TP-105",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Dashboard summary is internally consistent",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)"
+      ],
+      "testData": {},
+      "steps": [
+        "GET /api/v1/dashboard/summary"
+      ],
+      "expectedResults": [
+        "Schema valid",
+        "pending+in_progress+completed = total = Σ by_priority"
+      ],
+      "automationType": "API",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/dashboard.api.spec.ts"
+    },
+    {
+      "id": "TC-API-051",
+      "storyKey": "TP-105",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Updated task appears in recent activity",
+      "preconditions": [
+        "TaskPilot API is reachable (/health = ok)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Update task",
+        "GET summary"
+      ],
+      "expectedResults": [
+        "recent_activity contains the task",
+        "Sorted newest first"
+      ],
+      "automationType": "API",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/api/dashboard.api.spec.ts"
+    },
+    {
+      "id": "TC-UI-001",
+      "storyKey": "TP-105",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Dashboard metric cards equal API summary",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Open dashboard (capture summary response)",
+        "Read metric cards"
+      ],
+      "expectedResults": [
+        "Each card equals the summary value"
+      ],
+      "automationType": "UI",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/dashboard.spec.ts"
+    },
+    {
+      "id": "TC-UI-002",
+      "storyKey": "TP-105",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Recent activity lists updated task and links to it",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create + update task via API",
+        "Open dashboard",
+        "Click the task link"
+      ],
+      "expectedResults": [
+        "Link visible",
+        "Navigates to /tasks/{id}"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/dashboard.spec.ts"
+    },
+    {
+      "id": "TC-UI-010",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC3",
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Create task through the form",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {
+        "priority": "high",
+        "status": "in_progress",
+        "due_date": "today+10"
+      },
+      "steps": [
+        "Open Create task dialog",
+        "Verify defaults",
+        "Fill and save",
+        "Search title"
+      ],
+      "expectedResults": [
+        "Defaults pending/medium",
+        "Row visible",
+        "Row shows status, priority, due date, description"
+      ],
+      "automationType": "UI",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-create.spec.ts"
+    },
+    {
+      "id": "TC-UI-011",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "negative",
+      "title": "Whitespace-only title shows validation error",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {
+        "title": "\"   \""
+      },
+      "steps": [
+        "Open dialog",
+        "Enter blank title",
+        "Submit"
+      ],
+      "expectedResults": [
+        "Title validation alert",
+        "Dialog stays open",
+        "No task created"
+      ],
+      "automationType": "UI",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-create.spec.ts"
+    },
+    {
+      "id": "TC-UI-012",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "negative",
+      "title": "Cancel discards the new task",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Fill form",
+        "Cancel",
+        "Search title"
+      ],
+      "expectedResults": [
+        "Dialog closed",
+        "Empty state",
+        "No task in API"
+      ],
+      "automationType": "UI",
+      "priority": "P3",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-create.spec.ts"
+    },
+    {
+      "id": "TC-UI-020",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Search narrows the list",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create 2 tasks with shared token (API)",
+        "Search token",
+        "Refine search"
+      ],
+      "expectedResults": [
+        "2 rows",
+        "1 row"
+      ],
+      "automationType": "UI",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-search.spec.ts"
+    },
+    {
+      "id": "TC-UI-021",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Status filter shows only that status",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create pending + completed (API)",
+        "Search token",
+        "Filter Completed, then Pending"
+      ],
+      "expectedResults": [
+        "Only the matching row each time"
+      ],
+      "automationType": "UI",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-search.spec.ts"
+    },
+    {
+      "id": "TC-UI-022",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "negative",
+      "title": "No match shows empty state",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {
+        "search": "<impossible value>"
+      },
+      "steps": [
+        "Search impossible value"
+      ],
+      "expectedResults": [
+        "\"No matching tasks\" + hint shown",
+        "Table hidden"
+      ],
+      "automationType": "UI",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-search.spec.ts"
+    },
+    {
+      "id": "TC-UI-023",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "List is paginated",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Open tasks",
+        "Read pagination summary",
+        "Next page when available"
+      ],
+      "expectedResults": [
+        "\"Showing 1–n of N\" matches rows",
+        "Next page advances range"
+      ],
+      "automationType": "UI",
+      "priority": "P3",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-search.spec.ts"
+    },
+    {
+      "id": "TC-UI-030",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Edit a task from the list",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create task (API)",
+        "Open Edit dialog",
+        "Change fields and save"
+      ],
+      "expectedResults": [
+        "Dialog prefilled",
+        "Row shows new values",
+        "API returns new values"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-edit.spec.ts"
+    },
+    {
+      "id": "TC-UI-031",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Change status on the details page",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Open details",
+        "Select In progress"
+      ],
+      "expectedResults": [
+        "Select and badge show In progress",
+        "API status in_progress"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-edit.spec.ts"
+    },
+    {
+      "id": "TC-UI-050",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC5"
+      ],
+      "type": "positive",
+      "title": "Details page shows every field",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Open task from list"
+      ],
+      "expectedResults": [
+        "URL /tasks/{id}",
+        "All fields and timestamps shown",
+        "Back link returns to list"
+      ],
+      "automationType": "UI",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-details.spec.ts"
+    },
+    {
+      "id": "TC-UI-051",
+      "storyKey": "TP-102",
+      "acIds": [
+        "AC5"
+      ],
+      "type": "negative",
+      "title": "Unknown task id shows not-found error (also TP-106 AC2)",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Open /tasks/<random uuid>"
+      ],
+      "expectedResults": [
+        "\"We couldn’t load this page\" + \"Task not found\" + Try again"
+      ],
+      "automationType": "UI",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/task-details.spec.ts"
+    },
+    {
+      "id": "TC-UI-060",
+      "storyKey": "TP-106",
+      "acIds": [
+        "AC1"
+      ],
+      "type": "positive",
+      "title": "Loading indicator while tasks load",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Hold the tasks response with page.route",
+        "Open /tasks",
+        "Release response"
+      ],
+      "expectedResults": [
+        "\"Loading tasks…\" visible",
+        "Then table shown"
+      ],
+      "automationType": "UI",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/loading-and-errors.spec.ts"
+    },
+    {
+      "id": "TC-UI-061",
+      "storyKey": "TP-106",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "negative",
+      "title": "API unavailable shows error and retry recovers",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)"
+      ],
+      "testData": {},
+      "steps": [
+        "Abort tasks requests",
+        "Open /tasks",
+        "Restore network, click Try again"
+      ],
+      "expectedResults": [
+        "Error message + Try again",
+        "Table shown after retry"
+      ],
+      "automationType": "UI",
+      "priority": "P2",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/ui/loading-and-errors.spec.ts"
+    },
+    {
+      "id": "TC-HYB-001",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Scenario A: API-created task appears in UI",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create task via API",
+        "Search in UI"
+      ],
+      "expectedResults": [
+        "Row visible with correct status"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/hybrid/task-lifecycle.hybrid.spec.ts"
+    },
+    {
+      "id": "TC-HYB-002",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC1",
+        "AC3"
+      ],
+      "type": "positive",
+      "title": "Scenario B: UI-created task exists in API",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Create task in UI",
+        "Query API"
+      ],
+      "expectedResults": [
+        "Exactly 1 task, status pending",
+        "Fields equal form input"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/hybrid/task-lifecycle.hybrid.spec.ts"
+    },
+    {
+      "id": "TC-HYB-003",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Scenario C: API status update shown in UI",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "PATCH status=completed",
+        "Open details"
+      ],
+      "expectedResults": [
+        "Status select = completed"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/hybrid/task-lifecycle.hybrid.spec.ts"
+    },
+    {
+      "id": "TC-HYB-004",
+      "storyKey": "TP-103",
+      "acIds": [
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Scenario D: complete in UI → API completed",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Change row status to Completed",
+        "GET task"
+      ],
+      "expectedResults": [
+        "PATCH 200",
+        "API status completed, updated_at newer"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/hybrid/task-lifecycle.hybrid.spec.ts"
+    },
+    {
+      "id": "TC-HYB-005",
+      "storyKey": "TP-104",
+      "acIds": [
+        "AC1",
+        "AC2"
+      ],
+      "type": "positive",
+      "title": "Scenario E: delete → unavailable in UI and API",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Delete and dismiss confirm",
+        "Delete and accept confirm",
+        "GET task"
+      ],
+      "expectedResults": [
+        "Task kept after cancel",
+        "Row removed",
+        "API 404"
+      ],
+      "automationType": "Hybrid",
+      "priority": "P1",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/hybrid/task-lifecycle.hybrid.spec.ts"
+    },
+    {
+      "id": "TC-CG-001",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Codegen refactor: create task and open details (also TP-102 AC5)",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "Browser: Chromium (default)",
+        "Test creates its own uniquely named data (TPW-<runId>-…) and deletes it afterwards"
+      ],
+      "testData": {},
+      "steps": [
+        "Navigate to Tasks",
+        "Create task",
+        "Open details"
+      ],
+      "expectedResults": [
+        "Row visible",
+        "Details show entered values"
+      ],
+      "automationType": "UI",
+      "priority": "P3",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/codegen/create-task.refactored.spec.ts"
+    },
+    {
+      "id": "TC-MAN-001",
+      "storyKey": "TP-105",
+      "acIds": [
+        "AC3"
+      ],
+      "type": "positive",
+      "title": "Dashboard load time and usability",
+      "preconditions": [
+        "BLOCKED: AC3 is ambiguous (\"fast\", \"user-friendly\") — awaiting measurable criteria from the Product Owner"
+      ],
+      "testData": {},
+      "steps": [
+        "—"
+      ],
+      "expectedResults": [
+        "—"
+      ],
+      "automationType": "Manual",
+      "priority": "P3",
+      "status": "approved",
+      "automated": false,
+      "spec": null
+    },
+    {
+      "id": "TC-DEMO-001",
+      "storyKey": "TP-101",
+      "acIds": [
+        "AC4"
+      ],
+      "type": "positive",
+      "title": "Headed demo: create persistent demo tasks through the UI",
+      "preconditions": [
+        "TaskPilot UI and API are reachable",
+        "DEMO=true (opt-in; data is intentionally kept)"
+      ],
+      "testData": {
+        "titles": "TPW-DEMO-<timestamp> …",
+        "count": 3
+      },
+      "steps": [
+        "Open Create task dialog",
+        "Fill title, description, status, priority, due date",
+        "Save",
+        "Search the title"
+      ],
+      "expectedResults": [
+        "Row visible with chosen status",
+        "Exactly 1 matching task in the API"
+      ],
+      "automationType": "UI",
+      "priority": "P3",
+      "status": "approved",
+      "automated": true,
+      "spec": "tests/demo/create-demo-tasks.demo.spec.ts"
+    }
+  ]
+}

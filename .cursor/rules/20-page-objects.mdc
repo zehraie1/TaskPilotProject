@@ -1,0 +1,14 @@
+---
+description: Page Object Model conventions
+globs: pages/**/*.ts
+alwaysApply: false
+---
+# Page object rules
+
+- One class per page/component: `DashboardPage`, `TasksPage`, `TaskForm`, `TaskDetails` (extend `BasePage` for routed pages).
+- Expose `readonly` Locators + intention-revealing async actions (`openCreateForm`, `searchFor`, `deleteTask`).
+- Locator priority: `getByRole` (with accessible name) → `getByLabel` → `getByTestId` (existing data-testid) → text → CSS (documented).
+- Page objects may contain *state-confirming* expectations (e.g. dialog closed after save) but business assertions belong in specs.
+- No test data creation, no API calls, no sleeps inside page objects.
+- Native `window.confirm()` is handled with `page.once('dialog', ...)` registered BEFORE the click.
+- Export new page objects from `pages/index.ts` and add a fixture in `fixtures/test.ts`.

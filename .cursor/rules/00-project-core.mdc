@@ -1,0 +1,13 @@
+---
+description: Core principles for TestPilot PW — always applied
+alwaysApply: true
+---
+# TestPilot PW core rules
+
+- This repo tests TaskPilot from the outside. Never modify or re-implement TaskPilot.
+- Verify endpoints against `${API_BASE_URL}/openapi.json` and selectors against the live UI before writing code. Do not invent.
+- TypeScript strict mode, ES modules, relative imports WITH `.ts` extension (Node native type stripping).
+- Use the fewest dependencies; prefer Playwright and Node built-ins.
+- Never claim a test passed or a Jira/CI integration worked without showing actual execution output.
+- Never print, commit or attach secrets. `.env` is git-ignored; use `.env.example` for documentation.
+- Before finishing: `npm run typecheck` and run the affected specs.

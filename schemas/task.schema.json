@@ -1,0 +1,18 @@
+{
+  "$id": "task.schema.json",
+  "title": "TaskRead",
+  "description": "Single task as returned by TaskPilot API. Derived from OpenAPI components.schemas.TaskRead and verified against live responses.",
+  "type": "object",
+  "required": ["id", "title", "description", "status", "priority", "due_date", "created_at", "updated_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": ["string", "null"], "maxLength": 2000 },
+    "status": { "enum": ["pending", "in_progress", "completed"] },
+    "priority": { "enum": ["low", "medium", "high"] },
+    "due_date": { "type": ["string", "null"], "format": "date" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

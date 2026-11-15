@@ -1,0 +1,12 @@
+---
+description: API automation conventions
+globs: tests/api/**/*.ts, clients/**/*.ts, schemas/**/*.json
+alwaysApply: false
+---
+# API rules
+
+- All HTTP goes through `TaskApiClient` (clients/task-api-client.ts) so evidence is logged and sanitized.
+- Assert status code explicitly, then schema (`expectSchema('task', body)`), then business values.
+- Cover positive, negative (422/404) and boundary values (title 1/120/121, description 2000/2001, limit 0/1/100/101).
+- Schemas in `schemas/*.schema.json` mirror OpenAPI + observed behaviour; use `additionalProperties: false` for response bodies.
+- Document every contract deviation in `docs/api-contract-findings.md` instead of silently adapting tests.

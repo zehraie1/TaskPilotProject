@@ -1,0 +1,12 @@
+---
+description: GitHub Actions rules
+globs: .github/workflows/*.yml
+alwaysApply: false
+---
+# CI rules
+
+- Steps: checkout → setup-node (npm cache) → `npm ci` → install Chromium → `npm run typecheck` → tests → upload reports (always).
+- Credentials only via `${{ secrets.* }}`; never echo them.
+- Jira publishing is a separate, manually triggered job (`workflow_dispatch` input `publish_to_jira`) protected by an environment.
+- Upload `reports/` and `test-results/` with `if: always()` so failures keep their evidence.
+- Pin action major versions; keep `timeout-minutes` set.

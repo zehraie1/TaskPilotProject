@@ -1,0 +1,148 @@
+name: TestPilot PW
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1-5' # weekdays 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which suite to run'
+        type: choice
+        options: [all, api, ui, hybrid, smoke]
+        default: all
+      evidence:
+        description: 'Evidence level'
+        type: choice
+        options: [standard, full]
+        default: standard
+      publish_to_jira:
+        description: 'Publish results to Jira after the run (requires approval of the "jira" environment)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: testpilot-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+  UI_BASE_URL: ${{ vars.UI_BASE_URL || 'https://taskpilot-web.onrender.com' }}
+  API_BASE_URL: ${{ vars.API_BASE_URL || 'https://taskpilot-api-k11v.onrender.com' }}
+  HEALTH_TIMEOUT_SECONDS: '180'
+  EVIDENCE: ${{ inputs.evidence || 'standard' }}
+  WORKERS: '3'
+  JIRA_MODE: fixture
+  TPW_RUN_ID: gh${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  test:
+    name: Typecheck & Playwright tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests
+        id: tests
+        run: |
+          case "${{ inputs.suite || 'all' }}" in
+            api)    npx playwright test --project=api ;;
+            ui)     npx playwright test --project=chromium tests/ui ;;
+            hybrid) npx playwright test --project=chromium tests/hybrid ;;
+            smoke)  npx playwright test --grep @smoke ;;
+            *)      npx playwright test ;;
+          esac
+
+      - name: Job summary (execution + AC coverage)
+        if: always()
+        run: |
+          if [ -f reports/coverage/execution-summary.md ]; then
+            cat reports/coverage/execution-summary.md >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            cat reports/coverage/ac-coverage.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No reports were produced — see the 'Run tests' step log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Failure diagnostics
+        if: failure()
+        run: |
+          echo "::group::Failure summary"
+          cat reports/coverage/failure-summary.md 2>/dev/null || echo "no failure summary"
+          echo "::endgroup::"
+          echo "::group::API health"
+          curl -sS --max-time 30 "$API_BASE_URL/health" || true
+          echo "::endgroup::"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpilot-reports-${{ github.run_id }}
+          path: reports/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload failure evidence (screenshots, videos, traces)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpilot-evidence-${{ github.run_id }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  publish-jira:
+    name: Publish evidence to Jira (opt-in)
+    needs: test
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.publish_to_jira && needs.test.result != 'cancelled' && needs.test.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: jira # configure "Required reviewers" on this environment for explicit approval
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: testpilot-reports-${{ github.run_id }}
+          path: reports/
+      - name: Publish (approved)
+        env:
+          JIRA_MODE: connected
+          JIRA_PUBLISH_ENABLED: 'true'
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: npm run jira:publish -- --all --approve
+      - name: Upload publishing record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testpilot-jira-publish-${{ github.run_id }}
+          path: reports/jira/
+          if-no-files-found: ignore

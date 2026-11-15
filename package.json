@@ -1,0 +1,40 @@
+{
+  "name": "testpilot-pw",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Playwright UI & API automation framework for the TaskPilot application.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=chromium tests/ui",
+    "test:hybrid": "playwright test --project=chromium tests/hybrid",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:all-browsers": "node scripts/with-env.mjs ALL_BROWSERS=true -- playwright test",
+    "test:evidence": "node scripts/with-env.mjs EVIDENCE=full -- playwright test",
+    "test:headed": "playwright test --project=chromium --headed",
+    "test:debug": "playwright test --project=chromium --debug",
+    "codegen": "node scripts/codegen.mjs",
+    "report": "playwright show-report reports/html",
+    "trace": "playwright show-trace",
+    "jira:read": "node integrations/jira/cli/read-story.ts",
+    "jira:generate": "node integrations/jira/cli/generate-test-cases.ts",
+    "jira:publish": "node integrations/jira/cli/publish-results.ts",
+    "jira:sync": "node integrations/jira/cli/sync-stories.ts",
+    "browsers:install": "playwright install",
+    "demo:create-tasks": "node scripts/with-env.mjs DEMO=true -- playwright test --project=chromium tests/demo --headed --workers=1",
+    "demo:cleanup": "node scripts/demo-cleanup.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "dotenv": "^18.0.10",
+    "typescript": "^7.0.2"
+  }
+}

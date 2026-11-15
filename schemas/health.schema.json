@@ -1,0 +1,7 @@
+{
+  "$id": "health.schema.json",
+  "title": "Health",
+  "type": "object",
+  "required": ["status"],
+  "properties": { "status": { "const": "ok" } }
+}

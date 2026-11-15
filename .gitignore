@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit real environment files
+.env
+.env.*
+!.env.example
+
+# Generated execution output
+reports/
+test-results/
+playwright-report/
+blob-report/
+generated/
+playwright/.cache/
+playwright/.auth/
+
+# OS / editor
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json

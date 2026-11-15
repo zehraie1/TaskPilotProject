@@ -1,0 +1,13 @@
+---
+description: Jira integration, reporting and evidence rules
+globs: integrations/**/*.ts, reporting/**/*.ts, utils/evidence.ts, utils/sanitize.ts
+alwaysApply: false
+---
+# Jira & reporting rules
+
+- Basic test execution must never require Jira. `JIRA_MODE=fixture` reads `data/jira/*.json`.
+- Publishing is dry-run by default; real writes need `JIRA_PUBLISH_ENABLED=true` AND `--approve`.
+- Publish only numbers read from `reports/coverage/ac-coverage.json`. Never fabricate metrics.
+- De-duplicate: run marker in comments, run-specific attachment names, idempotent remote-link `globalId`.
+- Sanitize everything that leaves the machine (`sanitize()` / `sanitizeString()`); never upload videos/traces to Jira.
+- Coverage statuses: Passed, Failed, Not executed, Not automated — computed from executed `verifyAC` steps only.

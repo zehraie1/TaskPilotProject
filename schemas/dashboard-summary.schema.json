@@ -1,0 +1,25 @@
+{
+  "$id": "dashboard-summary.schema.json",
+  "title": "DashboardSummary",
+  "type": "object",
+  "required": ["total", "pending", "in_progress", "completed", "overdue", "by_priority", "recent_activity"],
+  "additionalProperties": false,
+  "properties": {
+    "total": { "type": "integer", "minimum": 0 },
+    "pending": { "type": "integer", "minimum": 0 },
+    "in_progress": { "type": "integer", "minimum": 0 },
+    "completed": { "type": "integer", "minimum": 0 },
+    "overdue": { "type": "integer", "minimum": 0 },
+    "by_priority": {
+      "type": "object",
+      "required": ["low", "medium", "high"],
+      "additionalProperties": false,
+      "properties": {
+        "low": { "type": "integer", "minimum": 0 },
+        "medium": { "type": "integer", "minimum": 0 },
+        "high": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "recent_activity": { "type": "array", "items": { "$ref": "task.schema.json" } }
+  }
+}

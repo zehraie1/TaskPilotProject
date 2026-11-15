@@ -1,0 +1,17 @@
+---
+description: Rules for writing Playwright specs (UI, API, hybrid)
+globs: tests/**/*.ts
+alwaysApply: false
+---
+# Spec rules
+
+- `import { test, expect } from '../../fixtures/test.ts'` — never from `@playwright/test`.
+- Signature: `test('<behaviour>', trace({ testCase: 'TC-XXX-NNN', covers: ['TP-101:AC1'], tags: ['@smoke'] }), async ({ ... }) => {})`.
+- Wrap each business validation in `verifyAC(ac, stepName, expectedResult, async () => { ...assertions...; return actual })`.
+  Use plain `test.step()` only for arrange/navigation steps without AC meaning.
+- Data: `tasks.create()` for API arrange; `tasks.adoptByTitle()` after creating through the UI; `tasks.forget(id)` after a test deletes a task itself.
+- Titles must come from `uniqueTitle()` / `buildTask()` so they carry the run prefix.
+- Forbidden: `page.waitForTimeout`, `test.only` (CI fails), hard-coded URLs, hard-coded seed task names/ids, `force: true` clicks without justification.
+- Assert business outcomes (what the user/consumer sees), not implementation details.
+- Each test must be independent and parallel-safe on a shared database.
+- Data-driven tests: loop over a typed array and generate one `test()` per row with a descriptive title.
